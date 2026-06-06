@@ -1155,6 +1155,54 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 </script>
+
+<script>
+// Pre-seed W1A session data from first session
+(function() {
+  try {
+    const historyKey = 'ivan_prog1_history';
+    const sessionKey = 'ivan_prog1_w1_A';
+    const lockKey = 'ivan_prog1_w1_A_locked';
+
+    // Only seed if not already present
+    if (!localStorage.getItem(sessionKey)) {
+      const loads = ['14', '15', '30', '15', '7.5'];
+      // 6 items including warmup
+      const allLoads = ['', ...loads];
+      const setsDone = [0, 2, 2, 3, 2, 2];
+      localStorage.setItem(sessionKey, JSON.stringify({ loads: allLoads, setsDone }));
+    }
+
+    if (!localStorage.getItem(lockKey)) {
+      localStorage.setItem(lockKey, 'true');
+    }
+
+    const existing = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const alreadyLogged = existing.some(e => e.week === 1 && e.workout === 'A');
+    if (!alreadyLogged) {
+      existing.push({
+        date: '06 Jun 2026',
+        time: '13:06',
+        endTime: '--',
+        duration: 0,
+        week: 1,
+        workout: 'A',
+        migrated: true,
+        loads: [
+          { name: 'Warm-Up', load: '' },
+          { name: 'Dumbbell Goblet Squat', load: '14' },
+          { name: 'Knee Extensions', load: '15' },
+          { name: 'Standing Barbell Overhead Press', load: '30' },
+          { name: 'Tricep Pushdowns', load: '15' },
+          { name: 'Jefferson Curls', load: '7.5' }
+        ]
+      });
+      localStorage.setItem(historyKey, JSON.stringify(existing));
+    }
+  } catch(e) {}
+})();
+</script>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
