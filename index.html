@@ -878,7 +878,7 @@ function getCWorkout(week) {
 function updateCLabel() {
   const cWorkout = getCWorkout(currentWeek);
   const label = document.getElementById('c-label');
-  if (label) label.textContent = `= Workout ${cWorkout}`;
+  if (label) label.textContent = cWorkout === 'A' ? 'Lower · Push' : 'Hinge · Pull';
   const btnC = document.getElementById('btn-C');
   if (btnC) btnC.style.borderTopColor = cWorkout === 'A' ? '#e8ff47' : '#47b8ff';
 }
