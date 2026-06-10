@@ -103,7 +103,7 @@
   .workout-buttons {
     margin-top: 40px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
   }
 
@@ -397,7 +397,7 @@
   .ex-nav {
     padding: 16px 24px 40px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 12px;
     border-top: 1px solid var(--border);
     background: var(--bg);
@@ -557,6 +557,10 @@
       <button class="workout-btn b-btn" onclick="startWorkout('B')" id="btn-B">
         B
         <span>Hinge · Pull</span>
+      </button>
+      <button class="workout-btn" id="btn-C" onclick="startWorkoutC()" style="border-top:3px solid #b847ff;">
+        C
+        <span id="c-label"></span>
       </button>
     </div>
   </div>
@@ -776,13 +780,14 @@ let loads = [];
 let restInterval = null;
 let sessionStart = null;
 let sessionEnd = null;
+let currentSlot = null;
 
-function storageKey(week, workout) {
-  return `ivan_prog1_w${week}_${workout}`;
+function storageKey(week, workout, slot) {
+  return `ivan_prog1_w${week}_${slot || workout}`;
 }
 
 function saveSession() {
-  const key = storageKey(currentWeek, currentWorkout);
+  const key = storageKey(currentWeek, currentWorkout, currentSlot);
   try { localStorage.setItem(key, JSON.stringify({ loads, setsDone })); } catch(e) {}
 }
 
@@ -813,10 +818,10 @@ function loadSession(week, workout) {
 }
 
 function updateLockBadges() {
-  ['A','B'].forEach(type => {
+  ['A','B','C'].forEach(type => {
     const btn = document.getElementById(`btn-${type}`);
     if (!btn) return;
-    const locked = isLocked(currentWeek, type);
+    const locked = isLocked(currentWeek, type, type);
     btn.style.opacity = locked ? '0.6' : '1';
     const existing = btn.querySelector('.lock-badge');
     if (existing) existing.remove();
@@ -866,19 +871,37 @@ function renderHomeHistory() {
   updateLockBadges();
 }
 
+function getCWorkout(week) {
+  return week % 2 === 1 ? 'A' : 'B';
+}
+
+function updateCLabel() {
+  const cWorkout = getCWorkout(currentWeek);
+  const label = document.getElementById('c-label');
+  if (label) label.textContent = `= Workout ${cWorkout}`;
+  const btnC = document.getElementById('btn-C');
+  if (btnC) btnC.style.borderTopColor = cWorkout === 'A' ? '#e8ff47' : '#47b8ff';
+}
+
+function startWorkoutC() {
+  startWorkout(getCWorkout(currentWeek), 'C');
+}
+
 function selectWeek(w) {
   currentWeek = w;
   document.querySelectorAll('.week-btn').forEach((b, i) => {
     b.classList.toggle('selected', i + 1 === w);
   });
+  updateCLabel();
   renderHomeHistory();
 }
 
-function startWorkout(type) {
+function startWorkout(type, slot) {
+  currentSlot = slot || type;
   currentWorkout = type;
   currentIndex = 0;
   const exercises = PROGRAMME[type];
-  const saved = loadSession(currentWeek, type);
+  const saved = loadSession(currentWeek, type, currentSlot);
   if (saved && saved.loads.length === exercises.length) {
     loads = saved.loads;
     setsDone = saved.setsDone;
@@ -886,10 +909,11 @@ function startWorkout(type) {
     loads = exercises.map(() => '');
     setsDone = exercises.map(() => 0);
   }
-  if (isLocked(currentWeek, type)) {
-    const unlock = confirm(`Workout ${type} — Week ${currentWeek} is locked (completed). Unlock to edit?`);
+  if (isLocked(currentWeek, type, currentSlot)) {
+    const slotLabel = currentSlot === 'C' ? `C (Workout ${type})` : type;
+    const unlock = confirm(`Workout ${slotLabel} — Week ${currentWeek} is locked (completed). Unlock to edit?`);
     if (unlock) {
-      unlockSession(currentWeek, type);
+      unlockSession(currentWeek, type, currentSlot);
     } else {
       return;
     }
@@ -1010,7 +1034,7 @@ function nextExercise() {
     startRest(ex.rest, `Next: ${exercises[currentIndex].name}`);
     renderExercise();
   } else {
-    saveSession(); sessionEnd = new Date(); saveHistory(); lockSession(currentWeek, currentWorkout); showScreen('done'); renderDoneScreen();
+    saveSession(); sessionEnd = new Date(); saveHistory(); lockSession(currentWeek, currentWorkout, currentSlot); showScreen('done'); renderDoneScreen();
   }
 }
 
@@ -1030,8 +1054,8 @@ function goHome() {
 
 
 
-function lockKey(week, workout) {
-  return `ivan_prog1_w${week}_${workout}_locked`;
+function lockKey(week, workout, slot) {
+  return `ivan_prog1_w${week}_${slot || workout}_locked`;
 }
 
 function isLocked(week, workout) {
@@ -1091,7 +1115,7 @@ function migrateExistingData() {
   } catch(e) {}
 }
 
-function init() { migrateExistingData(); renderHomeHistory(); }
+function init() { migrateExistingData(); renderHomeHistory(); updateCLabel(); }
 window.addEventListener("load", init);
 
 
@@ -1131,7 +1155,7 @@ function showHistory() {
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">Workout ${entry.workout} — Week ${entry.week}</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">Workout ${entry.slot || entry.workout} — Week ${entry.week}</div>
               <div style="font-size:12px;color:var(--muted);margin-top:2px;">${entry.date} · ${entry.time}–${entry.endTime} · ${entry.duration}min</div>
             </div>
             <div style="background:var(--accent);color:var(--bg);font-family:'Bebas Neue',sans-serif;font-size:18px;padding:6px 12px;border-radius:6px;">W${entry.week}${entry.workout}</div>
