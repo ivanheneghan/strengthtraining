@@ -809,9 +809,9 @@ function saveHistory() {
   } catch(e) {}
 }
 
-function loadSession(week, workout) {
+function loadSession(week, workout, slot) {
   try {
-    const saved = localStorage.getItem(storageKey(week, workout));
+    const saved = localStorage.getItem(storageKey(week, workout, slot));
     if (saved) return JSON.parse(saved);
   } catch(e) {}
   return null;
