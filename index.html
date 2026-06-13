@@ -1161,6 +1161,15 @@ function debugStorage() {
       }
     });
   }
+  out += '\n--- HISTORY ---\n';
+  try {
+    const history = JSON.parse(localStorage.getItem('ivan_prog1_history') || '[]');
+    history.forEach((e, i) => {
+      out += `[${i}] week:${e.week} workout:${e.workout} slot:${e.slot || '(none)'} date:${e.date} migrated:${e.migrated || false}\n`;
+    });
+  } catch(e) {
+    out += 'Error reading history: ' + e.message;
+  }
   alert(out || 'No data found');
 }
 
