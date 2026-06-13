@@ -548,6 +548,9 @@
       </div>
     </div>
 
+    
+    <div style="margin-top:12px;"><button onclick="debugStorage()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;padding:8px;border-radius:8px;cursor:pointer;">Debug Storage</button></div>
+
     <div style="margin-top:20px;"><button onclick="showHistory()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:12px;border-radius:8px;cursor:pointer;">View Session History</button></div>
     <div class="workout-buttons">
       <button class="workout-btn a-btn" onclick="startWorkout('A')" id="btn-A">
@@ -1142,6 +1145,23 @@ function renderDoneScreen() {
   }
 }
 
+
+
+function debugStorage() {
+  let out = '';
+  for (let w = 1; w <= 4; w++) {
+    ['A','B','C'].forEach(slot => {
+      const key = `ivan_prog1_w${w}_${slot}`;
+      const lockKey2 = `ivan_prog1_w${w}_${slot}_locked`;
+      const data = localStorage.getItem(key);
+      const locked = localStorage.getItem(lockKey2);
+      if (data || locked) {
+        out += `${key}: ${data || '(none)'} | locked: ${locked || 'false'}\n`;
+      }
+    });
+  }
+  alert(out || 'No data found');
+}
 
 function showHistory() {
   try {
