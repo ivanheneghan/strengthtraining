@@ -1201,55 +1201,49 @@ function showScreen(id) {
 }
 </script>
 
+
+
 <script>
-// One-time history cleanup: dedupe and fix mislabeled today's C session
+// One-time history cleanup v2: fix today's C session from history data
 (function() {
   try {
     let history = JSON.parse(localStorage.getItem('ivan_prog1_history') || '[]');
 
-    // Remove duplicate W1B migrated entries (keep the one with real times)
-    const seen = new Set();
-    history = history.filter(e => {
-      if (e.week === 1 && e.workout === 'B' && !e.slot) {
-        const key = `${e.week}-${e.workout}-migrated`;
-        if (e.migrated && e.duration === 0) {
-          return false; // drop the empty migrated duplicate
-        }
+    // Remove duplicate empty W1B migrated entry
+    history = history.filter(e => !(e.week === 1 && e.workout === 'B' && !e.slot && e.migrated && e.duration === 0));
+
+    const today = new Date().toLocaleDateString('en-IE', {day:'2-digit', month:'short', year:'numeric'});
+
+    history.forEach(e => {
+      // Find today's entry that's mislabeled as A (it's actually C)
+      if (e.week === 1 && e.workout === 'A' && e.date === today && !e.slot) {
+        e.slot = 'C';
+        // Recreate w1_C session data from this history entry
+        const exercises = PROGRAMME['A'];
+        const loads = exercises.map(ex => {
+          const found = e.loads.find(l => l.name === ex.name);
+          return found ? found.load : '';
+        });
+        const setsDone = exercises.map((ex, i) => loads[i] ? ex.weeks[0].sets : 0);
+        localStorage.setItem('ivan_prog1_w1_C', JSON.stringify({ loads, setsDone }));
+        localStorage.setItem('ivan_prog1_w1_C_locked', 'true');
       }
-      return true;
     });
 
-    // Fix today's mislabeled entry: W1A with today's date and non-zero duration is actually C
-    const today = new Date().toLocaleDateString('en-IE', {day:'2-digit', month:'short', year:'numeric'});
-    history.forEach(e => {
-      if (e.week === 1 && e.workout === 'A' && e.date === today && !e.migrated) {
-        e.slot = 'C';
-        // Move the lock from A to C
-        localStorage.removeItem('ivan_prog1_w1_A_locked');
-        localStorage.setItem('ivan_prog1_w1_C_locked', 'true');
-        // Move the session data from w1_A to w1_C if it's today's session
-        const aData = localStorage.getItem('ivan_prog1_w1_A');
-        if (aData) {
-          const parsed = JSON.parse(aData);
-          // Only move if it matches today's loads (16, 25, 30, 14, 18)
-          if (parsed.loads && parsed.loads[1] === '16') {
-            localStorage.setItem('ivan_prog1_w1_C', aData);
-            // Restore original W1A data
-            localStorage.setItem('ivan_prog1_w1_A', JSON.stringify({
-              loads: ['', '14', '15', '30', '15', '7.5'],
-              setsDone: [0, 2, 2, 3, 2, 2]
-            }));
-            localStorage.setItem('ivan_prog1_w1_A_locked', 'true');
-          }
-        }
-      }
-    });
+    // Ensure w1_A has correct original data and is locked
+    const aData = localStorage.getItem('ivan_prog1_w1_A');
+    if (!aData || JSON.parse(aData).loads.length === 0) {
+      const exercisesA = PROGRAMME['A'];
+      const origLoads = ['', '14', '15', '30', '15', '7.5'];
+      const origSets = [0, 2, 2, 3, 2, 2];
+      localStorage.setItem('ivan_prog1_w1_A', JSON.stringify({ loads: origLoads, setsDone: origSets }));
+      localStorage.setItem('ivan_prog1_w1_A_locked', 'true');
+    }
 
     localStorage.setItem('ivan_prog1_history', JSON.stringify(history));
   } catch(e) {}
 })();
 </script>
-
 
 <script>
 // One-time cleanup: remove any bad C session data from buggy version
