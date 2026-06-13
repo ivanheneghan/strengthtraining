@@ -551,6 +551,9 @@
     
     <div style="margin-top:12px;"><button onclick="debugStorage()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;padding:8px;border-radius:8px;cursor:pointer;">Debug Storage</button></div>
 
+    
+    <div style="margin-top:8px;"><button onclick="fixW1C()" style="width:100%;background:#e8ff47;color:#0a0a0a;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:1px;padding:10px;border-radius:8px;cursor:pointer;">⚡ Fix Week 1 C Session</button></div>
+
     <div style="margin-top:20px;"><button onclick="showHistory()" style="width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:12px;border-radius:8px;cursor:pointer;">View Session History</button></div>
     <div class="workout-buttons">
       <button class="workout-btn a-btn" onclick="startWorkout('A')" id="btn-A">
@@ -1171,6 +1174,42 @@ function debugStorage() {
     out += 'Error reading history: ' + e.message;
   }
   alert(out || 'No data found');
+}
+
+
+function fixW1C() {
+  try {
+    // Directly write w1_C with today's known loads
+    const cData = {
+      loads: ['', '16', '25', '30', '14', '18'],
+      setsDone: [0, 2, 2, 3, 2, 2]
+    };
+    localStorage.setItem('ivan_prog1_w1_C', JSON.stringify(cData));
+    localStorage.setItem('ivan_prog1_w1_C_locked', 'true');
+
+    // Fix w1_A empty loads
+    const aData = localStorage.getItem('ivan_prog1_w1_A');
+    if (!aData || JSON.parse(aData).loads.length === 0) {
+      localStorage.setItem('ivan_prog1_w1_A', JSON.stringify({
+        loads: ['', '14', '15', '30', '15', '7.5'],
+        setsDone: [0, 2, 2, 3, 2, 2]
+      }));
+    }
+
+    // Fix history: relabel today's A entry to C, remove duplicate W1B
+    let history = JSON.parse(localStorage.getItem('ivan_prog1_history') || '[]');
+    history = history.filter(e => !(e.week === 1 && e.workout === 'B' && e.migrated === true));
+    history.forEach(e => {
+      if (e.week === 1 && e.workout === 'A' && (e.slot === 'C' || e.date === '13 Jun 2026')) {
+        e.slot = 'C';
+      }
+    });
+    localStorage.setItem('ivan_prog1_history', JSON.stringify(history));
+
+    alert('Fixed! Reload the page.');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 function showHistory() {
