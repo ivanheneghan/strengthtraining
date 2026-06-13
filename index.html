@@ -675,9 +675,9 @@ const PROGRAMME = {
       ]
     },
     {
-      name: "Tricep Pushdowns",
-      note: "",
-      cues: ["Straight bar or rope attachment", "Elbows pinned to sides — they don't move", "Full extension at bottom, squeeze", "Control the weight back up"],
+      name: "Overhead DB Tricep Extension",
+      note: "Substitution for Tricep Pushdowns",
+      cues: ["Hold one dumbbell with both hands behind head", "Elbows point forward, stay close to ears", "Extend arms fully overhead, squeeze triceps", "Lower under control back behind head"],
       rest: 30,
       weeks: [
         { sets: 2, reps: "8–10" },
@@ -1261,10 +1261,10 @@ function showScreen(id) {
 </script>
 
 <script>
+// Unregister any existing service worker to prevent stale caching
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .catch(err => console.log('SW registration failed:', err));
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
   });
 }
 </script>
