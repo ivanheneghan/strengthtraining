@@ -1058,16 +1058,16 @@ function lockKey(week, workout, slot) {
   return `ivan_prog1_w${week}_${slot || workout}_locked`;
 }
 
-function isLocked(week, workout) {
-  try { return localStorage.getItem(lockKey(week, workout)) === 'true'; } catch(e) { return false; }
+function isLocked(week, workout, slot) {
+  try { return localStorage.getItem(lockKey(week, workout, slot)) === 'true'; } catch(e) { return false; }
 }
 
-function lockSession(week, workout) {
-  try { localStorage.setItem(lockKey(week, workout), 'true'); } catch(e) {}
+function lockSession(week, workout, slot) {
+  try { localStorage.setItem(lockKey(week, workout, slot), 'true'); } catch(e) {}
 }
 
-function unlockSession(week, workout) {
-  try { localStorage.removeItem(lockKey(week, workout)); } catch(e) {}
+function unlockSession(week, workout, slot) {
+  try { localStorage.removeItem(lockKey(week, workout, slot)); } catch(e) {}
 }
 
 function migrateExistingData() {
