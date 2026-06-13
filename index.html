@@ -1219,13 +1219,13 @@ function showScreen(id) {
     let history = JSON.parse(localStorage.getItem('ivan_prog1_history') || '[]');
 
     // Remove duplicate empty W1B migrated entry
-    history = history.filter(e => !(e.week === 1 && e.workout === 'B' && !e.slot && e.migrated && e.duration === 0));
+    history = history.filter(e => !(e.week === 1 && e.workout === 'B' && e.migrated === true && e.duration === 0));
 
     const today = new Date().toLocaleDateString('en-IE', {day:'2-digit', month:'short', year:'numeric'});
 
     history.forEach(e => {
       // Find today's entry that's mislabeled as A (it's actually C)
-      if (e.week === 1 && e.workout === 'A' && e.date === today && !e.slot) {
+      if (e.week === 1 && e.workout === 'A' && e.date === today && (!e.slot || e.slot === 'C')) {
         e.slot = 'C';
         // Recreate w1_C session data from this history entry
         const exercises = PROGRAMME['A'];
