@@ -1180,6 +1180,19 @@ function showScreen(id) {
 }
 </script>
 
+
+<script>
+// One-time cleanup: remove any bad C session data from buggy version
+(function() {
+  try {
+    for (let w = 1; w <= 4; w++) {
+      localStorage.removeItem(`ivan_prog1_w${w}_C`);
+      localStorage.removeItem(`ivan_prog1_w${w}_C_locked`);
+    }
+  } catch(e) {}
+})();
+</script>
+
 <script>
 // Pre-seed W1A session data from first session
 (function() {
